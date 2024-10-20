@@ -39,7 +39,11 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 		return convertToPrunedBranch(originalCell)
 	}
 
-	lb0 := slice.MustLoadInt(1)
+	bit := slice.MustLoadBoolBit()
+	lb0 := 0
+	if bit {
+		lb0 = 1
+	}
 	prefixLength := uint64(0)
 	pp := prefix
 
@@ -47,21 +51,39 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 		prefixLength = readUnaryLength(slice)
 
 		for i := uint64(0); i < prefixLength; i++ {
-			pp += strconv.Itoa(int(slice.MustLoadInt(1)))
+			bit := slice.MustLoadBoolBit()
+			if bit {
+				pp += "1"
+			} else {
+				pp += "0"
+			}
 		}
 
 	} else {
-		lb1 := slice.MustLoadInt(1)
+		lb1 := 0
+		bit := slice.MustLoadBoolBit()
+		if bit {
+			lb1 = 1
+		}
 		if lb1 == 0 {
 			prefixLength = slice.MustLoadUInt(uint(math.Ceil(math.Log2(float64(n + 1)))))
 			for i := uint64(0); i < prefixLength; i++ {
-				pp += strconv.Itoa(int(slice.MustLoadInt(1)))
+				bit := slice.MustLoadBoolBit()
+				if bit {
+					pp += "1"
+				} else {
+					pp += "0"
+				}
 			}
 		} else {
-			bit := slice.MustLoadInt(1)
+			bit := slice.MustLoadBoolBit()
+			value := "0"
+			if bit {
+				value = "1"
+			}
 			prefixLength = slice.MustLoadUInt(uint(math.Ceil(math.Log2(float64(n + 1)))))
 			for i := uint64(0); i < prefixLength; i++ {
-				pp += strconv.Itoa(int(bit))
+				pp += value
 			}
 		}
 	}
@@ -81,7 +103,7 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 			rightKeys := fetchKeys(pp, keys, "1")
 			right = doGenerateMerkleProof(pp+"1", right, n-prefixLength-1, rightKeys).BeginParse()
 		}
-		return BeginCell().MustStoreSlice(sl.data, uint(len(sl.data))).MustStoreRef(left.MustToCell()).MustStoreRef(left.MustToCell()).EndCell()
+		return BeginCell().MustStoreBuilder(sl.ToBuilder()).MustStoreRef(left.MustToCell()).MustStoreRef(left.MustToCell()).EndCell()
 	}
 
 }
@@ -107,8 +129,8 @@ func ConvertToMerkleProof(c *Cell) *Cell {
 func readUnaryLength(slice *Slice) uint64 {
 	res := uint64(0)
 	for {
-		bit := slice.MustLoadUInt(1)
-		if bit == 0 {
+		bit := slice.MustLoadBoolBit()
+		if !bit {
 			break
 		}
 		res++
