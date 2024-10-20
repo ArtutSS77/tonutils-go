@@ -116,6 +116,7 @@ func endExoticCell(b *Builder) *Cell {
 	c := b.EndCell()
 	newCell := &Cell{
 		special: true,
+		data:    c.data,
 		bitsSz:  c.bitsSz,
 		refs:    c.refs,
 	}
