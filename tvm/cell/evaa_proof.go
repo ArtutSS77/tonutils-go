@@ -115,10 +115,13 @@ func convertToPrunedBranch(c *Cell) *Cell {
 func endExoticCell(b *Builder) *Cell {
 	c := b.EndCell()
 	newCell := &Cell{
-		special: true,
-		data:    c.data,
-		bitsSz:  c.bitsSz,
-		refs:    c.refs,
+		special:     true,
+		data:        c.data,
+		bitsSz:      c.bitsSz,
+		refs:        c.refs,
+		depthLevels: c.depthLevels,
+		hashes:      c.hashes,
+		levelMask:   c.levelMask,
 	}
 	return newCell
 }
