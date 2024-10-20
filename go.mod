@@ -1,4 +1,4 @@
-module github.com/ArturSS77/tonutils-go
+module github.com/ArtutSS77/tonutils-go
 
 go 1.22.5
 
