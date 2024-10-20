@@ -7,10 +7,10 @@ import (
 )
 
 func GenerateMerkleProof(dict *Dictionary, assets map[string]*Cell) *Cell {
-	return convertToMerkleProof(generateMerkleProofDirect(dict, assets))
+	return ConvertToMerkleProof(GenerateMerkleProofDirect(dict, assets))
 }
 
-func generateMerkleProofDirect(dict *Dictionary, assets map[string]*Cell) *Cell {
+func GenerateMerkleProofDirect(dict *Dictionary, assets map[string]*Cell) *Cell {
 	for _, asset := range assets {
 		_, err := dict.LoadValue(asset)
 		if err != nil {
@@ -100,7 +100,7 @@ func endExoticCell(b *Builder) *Cell {
 	return newCell
 }
 
-func convertToMerkleProof(c *Cell) *Cell {
+func ConvertToMerkleProof(c *Cell) *Cell {
 	return endExoticCell(BeginCell().MustStoreUInt(3, 8).MustStoreBinarySnake(c.Hash(0)).MustStoreUInt(uint64(c.Depth(0)), 16).MustStoreRef(c))
 }
 
