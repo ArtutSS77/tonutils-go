@@ -103,7 +103,8 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 			rightKeys := fetchKeys(pp, keys, "1")
 			right = doGenerateMerkleProof(pp+"1", right, n-prefixLength-1, rightKeys).BeginParse()
 		}
-		return BeginCell().MustStoreBuilder(sl.ToBuilder()).MustStoreRef(left.MustToCell()).MustStoreRef(left.MustToCell()).EndCell()
+		log.Println("RETURNING THIS SHIT", BeginCell().MustStoreBuilder(sl.ToBuilder()).MustStoreRef(left.MustToCell()).MustStoreRef(right.MustToCell()).EndCell())
+		return BeginCell().MustStoreBuilder(sl.ToBuilder()).MustStoreRef(left.MustToCell()).MustStoreRef(right.MustToCell()).EndCell()
 	}
 
 }
