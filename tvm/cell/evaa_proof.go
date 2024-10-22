@@ -20,10 +20,8 @@ func GenerateMerkleProofDirect(dict *Dictionary, assets map[string]*Cell) *Cell 
 
 	var bitsValues [][]int
 
-	for key, asset := range assets {
+	for _, asset := range assets {
 		value := asset.BeginParse().MustLoadBigUInt(256)
-		log.Printf("loaded value for asset %s: %s", key, value)
-		log.Println(value.Bytes())
 		bitsValue := bytesToBits(value.Bytes())
 		bitsValues = append(bitsValues, bitsValue)
 	}
@@ -88,7 +86,7 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 		}
 	}
 
-	if -prefixLength == 0 {
+	if n-prefixLength == 0 {
 		return originalCell
 	} else {
 		sl := originalCell.BeginParse()
@@ -103,7 +101,6 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 			rightKeys := fetchKeys(pp, keys, "1")
 			right = doGenerateMerkleProof(pp+"1", right, n-prefixLength-1, rightKeys).BeginParse()
 		}
-		log.Println("RETURNING THIS SHIT", BeginCell().MustStoreBuilder(sl.ToBuilder()).MustStoreRef(left.MustToCell()).MustStoreRef(right.MustToCell()).EndCell())
 		return BeginCell().MustStoreBuilder(sl.ToBuilder()).MustStoreRef(left.MustToCell()).MustStoreRef(right.MustToCell()).EndCell()
 	}
 
