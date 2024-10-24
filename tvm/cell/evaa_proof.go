@@ -27,6 +27,7 @@ func GenerateMerkleProofDirect(dict *Dictionary, assets map[string]*Cell) *Cell 
 	}
 
 	pricesSlice := dict.AsCell().BeginParse()
+	log.Println(bitsValues)
 	return doGenerateMerkleProof("", pricesSlice, 256, bitsValues)
 }
 
@@ -107,25 +108,28 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 }
 
 func convertToPrunedBranch(c *Cell) *Cell {
-	return endExoticCell(BeginCell().MustStoreUInt(1, 8).MustStoreUInt(1, 8).MustStoreBinarySnake(c.Hash()).MustStoreUInt(uint64(c.Depth(0)), 16))
+	log.Printf("PRUNED HASH %x \n", c.Hash(0))
+	log.Println("PRUNED BRANCH", c.Dump())
+	return endExoticCell(BeginCell().MustStoreUInt(1, 8).MustStoreUInt(1, 8).MustStoreSlice(c.Hash(0), uint(len(c.Hash(0))*8)).MustStoreUInt(uint64(c.Depth(0)), 16))
 }
 
 func endExoticCell(b *Builder) *Cell {
 	c := b.EndCell()
 	newCell := &Cell{
-		special:     true,
-		data:        c.data,
-		bitsSz:      c.bitsSz,
-		refs:        c.refs,
-		depthLevels: c.depthLevels,
-		hashes:      c.hashes,
-		levelMask:   c.levelMask,
+		special: true,
+		data:    append([]byte{}, c.data...),
+		bitsSz:  c.bitsSz,
+		refs:    c.refs,
 	}
+	newCell.calculateHashes()
 	return newCell
 }
 
 func ConvertToMerkleProof(c *Cell) *Cell {
-	return endExoticCell(BeginCell().MustStoreUInt(3, 8).MustStoreBinarySnake(c.Hash(0)).MustStoreUInt(uint64(c.Depth(0)), 16).MustStoreRef(c))
+	log.Printf("HASH %x\n", c.Hash(0))
+	log.Println("DEPTH", c.Depth(0))
+	log.Println("CELL", c.Dump())
+	return endExoticCell(BeginCell().MustStoreUInt(3, 8).MustStoreSlice(c.Hash(0), uint(len(c.Hash(0))*8)).MustStoreUInt(uint64(c.Depth(0)), 16).MustStoreRef(c))
 }
 
 func readUnaryLength(slice *Slice) uint64 {
