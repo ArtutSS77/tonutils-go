@@ -27,7 +27,6 @@ func GenerateMerkleProofDirect(dict *Dictionary, assets map[string]*Cell) *Cell 
 	}
 
 	pricesSlice := dict.AsCell().BeginParse()
-	log.Println(bitsValues)
 	return doGenerateMerkleProof("", pricesSlice, 256, bitsValues)
 }
 
@@ -96,11 +95,11 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 
 		if !left.special {
 			leftKeys := fetchKeys(pp, keys, "0")
-			left = doGenerateMerkleProof(pp+"0", left, n-prefixLength-1, leftKeys).BeginParse()
+			left = doGenerateMerkleProof(pp+"0", left.Copy(), n-prefixLength-1, leftKeys).BeginParse()
 		}
 		if !right.special {
 			rightKeys := fetchKeys(pp, keys, "1")
-			right = doGenerateMerkleProof(pp+"1", right, n-prefixLength-1, rightKeys).BeginParse()
+			right = doGenerateMerkleProof(pp+"1", right.Copy(), n-prefixLength-1, rightKeys).BeginParse()
 		}
 		return BeginCell().MustStoreBuilder(sl.ToBuilder()).MustStoreRef(left.MustToCell()).MustStoreRef(right.MustToCell()).EndCell()
 	}
@@ -108,28 +107,24 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 }
 
 func convertToPrunedBranch(c *Cell) *Cell {
-	log.Printf("PRUNED HASH %x \n", c.Hash(0))
-	log.Println("PRUNED BRANCH", c.Dump())
-	return endExoticCell(BeginCell().MustStoreUInt(1, 8).MustStoreUInt(1, 8).MustStoreSlice(c.Hash(0), uint(len(c.Hash(0))*8)).MustStoreUInt(uint64(c.Depth(0)), 16))
+	return endExoticCell(BeginCell().MustStoreUInt(1, 8).MustStoreUInt(1, 8).MustStoreBinarySnake(c.Hash(0)).MustStoreUInt(uint64(c.Depth(0)), 16))
 }
 
 func endExoticCell(b *Builder) *Cell {
 	c := b.EndCell()
 	newCell := &Cell{
-		special: true,
-		data:    append([]byte{}, c.data...),
-		bitsSz:  c.bitsSz,
-		refs:    c.refs,
+		special:   true,
+		data:      append([]byte{}, c.data...),
+		bitsSz:    c.bitsSz,
+		refs:      c.refs,
+		levelMask: LevelMask{Mask: byte(c.BeginParse().Copy().MustLoadUInt(8))},
 	}
 	newCell.calculateHashes()
 	return newCell
 }
 
 func ConvertToMerkleProof(c *Cell) *Cell {
-	log.Printf("HASH %x\n", c.Hash(0))
-	log.Println("DEPTH", c.Depth(0))
-	log.Println("CELL", c.Dump())
-	return endExoticCell(BeginCell().MustStoreUInt(3, 8).MustStoreSlice(c.Hash(0), uint(len(c.Hash(0))*8)).MustStoreUInt(uint64(c.Depth(0)), 16).MustStoreRef(c))
+	return endExoticCell(BeginCell().MustStoreUInt(3, 8).MustStoreBinarySnake(c.Hash(0)).MustStoreUInt(uint64(c.Depth(0)), 16).MustStoreRef(c))
 }
 
 func readUnaryLength(slice *Slice) uint64 {
