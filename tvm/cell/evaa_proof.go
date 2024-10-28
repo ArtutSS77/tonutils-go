@@ -123,7 +123,7 @@ func endExoticCell(b *Builder) *Cell {
 	}
 
 	if c.GetType() == MerkleProofCellType {
-		newCell.levelMask = LevelMask{Mask: byte(3)}
+		newCell.levelMask = LevelMask{Mask: byte(4)}
 	}
 
 	newCell.calculateHashes()
