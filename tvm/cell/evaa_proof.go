@@ -122,8 +122,11 @@ func endExoticCell(b *Builder) *Cell {
 		levelMask: LevelMask{Mask: byte(c.BeginParse().Copy().MustLoadUInt(8))},
 	}
 
+	log.Printf("BEFORE CELL %+v", newCell)
+
 	if c.GetType() == MerkleProofCellType {
 		newCell.levelMask = LevelMask{Mask: byte(4)}
+		log.Printf("CELL %+v", newCell)
 	}
 
 	newCell.calculateHashes()
