@@ -121,16 +121,16 @@ func endExoticCell(b *Builder) *Cell {
 		refs:    c.refs,
 	}
 
+	if newCell.GetType() == PrunedCellType {
+		newCell.levelMask = LevelMask{Mask: byte(1)}
+	}
+
 	if newCell.GetType() == MerkleProofCellType {
 		newCell.levelMask = LevelMask{Mask: newCell.refs[0].levelMask.Mask >> 1}
 		log.Printf("CELL %+v", newCell)
 	}
 
 	newCell.calculateHashes()
-
-	if newCell.GetType() == PrunedCellType {
-		newCell.levelMask = LevelMask{Mask: byte(2)}
-	}
 
 	log.Println("NEW CELL LEVEL", newCell.levelMask)
 	log.Println("NEW CELL TYPE", newCell.GetType())
