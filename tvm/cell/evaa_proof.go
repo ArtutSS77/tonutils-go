@@ -115,14 +115,15 @@ func endExoticCell(b *Builder) *Cell {
 	c := b.EndCell()
 
 	newCell := &Cell{
-		special:   true,
-		data:      append([]byte{}, c.data...),
-		bitsSz:    c.bitsSz,
-		refs:      c.refs,
-		levelMask: LevelMask{Mask: byte(c.BeginParse().Copy().MustLoadUInt(8))},
+		special: true,
+		data:    append([]byte{}, c.data...),
+		bitsSz:  c.bitsSz,
+		refs:    c.refs,
 	}
 
-	log.Printf("BEFORE CELL %+v", newCell)
+	if newCell.GetType() == PrunedCellType {
+		newCell.levelMask = LevelMask{Mask: byte(1)}
+	}
 
 	if newCell.GetType() == MerkleProofCellType {
 		newCell.levelMask = LevelMask{Mask: newCell.refs[0].levelMask.Mask >> 1}
