@@ -129,7 +129,7 @@ func endExoticCell(b *Builder) *Cell {
 	newCell.calculateHashes()
 
 	if newCell.GetType() == PrunedCellType {
-		newCell.levelMask = LevelMask{Mask: byte(1)}
+		newCell.levelMask = LevelMask{Mask: byte(0)}
 	}
 
 	log.Println("NEW CELL LEVEL", newCell.levelMask)
