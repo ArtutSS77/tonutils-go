@@ -112,6 +112,7 @@ func convertToPrunedBranch(c *Cell) *Cell {
 
 func endExoticCell(b *Builder) *Cell {
 	c := b.EndCell()
+
 	newCell := &Cell{
 		special:   true,
 		data:      append([]byte{}, c.data...),
@@ -119,6 +120,11 @@ func endExoticCell(b *Builder) *Cell {
 		refs:      c.refs,
 		levelMask: LevelMask{Mask: byte(c.BeginParse().Copy().MustLoadUInt(8))},
 	}
+
+	if c.GetType() == MerkleProofCellType {
+		newCell.levelMask = LevelMask{Mask: byte(c.refs[0].levelMask.GetLevel() >> 1)}
+	}
+
 	newCell.calculateHashes()
 	return newCell
 }
