@@ -111,6 +111,7 @@ func convertToPrunedBranch(c *Cell) *Cell {
 }
 
 func endExoticCell(b *Builder) *Cell {
+
 	c := b.EndCell()
 
 	newCell := &Cell{
@@ -126,6 +127,11 @@ func endExoticCell(b *Builder) *Cell {
 	}
 
 	newCell.calculateHashes()
+
+	log.Println("NEW CELL LEVEL", newCell.levelMask)
+	log.Println("NEW CELL TYPE", newCell.GetType())
+	log.Println("NEW CELL DUMP", newCell.Dump())
+
 	return newCell
 }
 
