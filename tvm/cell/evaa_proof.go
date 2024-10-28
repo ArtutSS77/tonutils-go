@@ -124,8 +124,8 @@ func endExoticCell(b *Builder) *Cell {
 
 	log.Printf("BEFORE CELL %+v", newCell)
 
-	if c.GetType() == MerkleProofCellType {
-		newCell.levelMask = LevelMask{Mask: byte(4)}
+	if newCell.GetType() == MerkleProofCellType {
+		newCell.levelMask = LevelMask{Mask: newCell.refs[0].levelMask.Mask >> 1}
 		log.Printf("CELL %+v", newCell)
 	}
 
