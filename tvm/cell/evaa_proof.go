@@ -233,28 +233,3 @@ func getBranches(c *Cell) [][]*Cell {
 	dfs(c)
 	return result
 }
-
-func setDepthLevels(c *Cell) {
-	if len(c.depthLevels) > 0 {
-		newDepthLevels := make([]uint16, 0)
-		for i := 0; i < 4; i++ {
-			newDepthLevels = append(newDepthLevels, c.depthLevels[0])
-		}
-		c.depthLevels = newDepthLevels
-		if len(c.refs) > 0 {
-			setDepthLevels(c.refs[0])
-		}
-	}
-}
-
-func setHashes(c *Cell) {
-	if len(c.hashes) == 32 {
-		hash := c.hashes
-		for i := 0; i < 3; i++ {
-			c.hashes = append(c.hashes, hash...)
-		}
-		if len(c.refs) > 0 {
-			setDepthLevels(c.refs[0])
-		}
-	}
-}
