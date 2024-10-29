@@ -101,6 +101,7 @@ func doGenerateMerkleProof(prefix string, slice *Slice, n uint64, keys [][]int) 
 			rightKeys := fetchKeys(pp, keys, "1")
 			right = doGenerateMerkleProof(pp+"1", right.Copy(), n-prefixLength-1, rightKeys).BeginParse()
 		}
+
 		return BeginCell().MustStoreBuilder(sl.ToBuilder()).MustStoreRef(left.MustToCell()).MustStoreRef(right.MustToCell()).EndCell()
 	}
 
@@ -122,19 +123,42 @@ func endExoticCell(b *Builder) *Cell {
 	}
 
 	if newCell.GetType() == PrunedCellType {
-		newCell.levelMask = LevelMask{Mask: byte(1)}
+		newCell.levelMask = LevelMask{Mask: newCell.data[1]}
+		newCell.calculateHashes()
 	}
 
 	if newCell.GetType() == MerkleProofCellType {
 		newCell.levelMask = LevelMask{Mask: newCell.refs[0].levelMask.Mask >> 1}
 		log.Printf("CELL %+v", newCell)
+		//setLevelMask(newCell)
+
+		branchesToSetLvl := [][]*Cell{}
+
+		branches := getBranches(newCell)
+		for _, branch := range branches {
+			for _, c := range branch {
+				if c.GetType() == PrunedCellType {
+					branchesToSetLvl = append(branchesToSetLvl, branch)
+				}
+			}
+		}
+
+		for _, branch := range branchesToSetLvl {
+			for _, c := range branch[1 : len(branch)-1] {
+				c.levelMask = LevelMask{Mask: byte(1)}
+				c.calculateHashes()
+			}
+		}
+
+		for _, branch := range branches {
+			for _, c := range branch {
+				c.calculateHashes()
+			}
+		}
+
+		newCell.calculateHashes()
+
 	}
-
-	newCell.calculateHashes()
-
-	log.Println("NEW CELL LEVEL", newCell.levelMask)
-	log.Println("NEW CELL TYPE", newCell.GetType())
-	log.Println("NEW CELL DUMP", newCell.Dump())
 
 	return newCell
 }
@@ -180,4 +204,57 @@ func fetchKeys(pp string, keys [][]int, bit string) [][]int {
 		}
 	}
 	return fetchedKeys
+}
+
+func getBranches(c *Cell) [][]*Cell {
+	var result [][]*Cell
+	var currentPath []*Cell
+
+	var dfs func(node *Cell)
+	dfs = func(node *Cell) {
+		/*
+			if len(node.refs) == 0 {
+				return
+			}
+		*/
+		currentPath = append(currentPath, node)
+
+		if len(node.refs) == 0 {
+			branch := make([]*Cell, len(currentPath))
+			copy(branch, currentPath)
+			result = append(result, branch)
+		}
+
+		for _, ref := range node.refs {
+			dfs(ref)
+		}
+		currentPath = currentPath[:len(currentPath)-1]
+	}
+	dfs(c)
+	return result
+}
+
+func setDepthLevels(c *Cell) {
+	if len(c.depthLevels) > 0 {
+		newDepthLevels := make([]uint16, 0)
+		for i := 0; i < 4; i++ {
+			newDepthLevels = append(newDepthLevels, c.depthLevels[0])
+		}
+		c.depthLevels = newDepthLevels
+		if len(c.refs) > 0 {
+			setDepthLevels(c.refs[0])
+		}
+	}
+}
+
+func setHashes(c *Cell) {
+	if len(c.hashes) == 32 {
+		hash := c.hashes
+		for i := 0; i < 3; i++ {
+			c.hashes = append(c.hashes, hash...)
+		}
+		if len(c.refs) > 0 {
+			setDepthLevels(c.refs[0])
+		}
+	}
 }
