@@ -129,10 +129,8 @@ func endExoticCell(b *Builder) *Cell {
 
 	if newCell.GetType() == MerkleProofCellType {
 		newCell.levelMask = LevelMask{Mask: newCell.refs[0].levelMask.Mask >> 1}
-		log.Printf("CELL %+v", newCell)
-		//setLevelMask(newCell)
 
-		branchesToSetLvl := [][]*Cell{}
+		var branchesToSetLvl [][]*Cell
 
 		branches := getBranches(newCell)
 		for _, branch := range branches {
